@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | ProSculpt</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #007BFF, #6610f2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .login-container {
+            background: white;
+            padding: 30px;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            text-align: center;
+            width: 360px;
+            position: relative;
+        }
+
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .logo-container img {
+            height: 50px;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: center;
+            background: #f2f2f2;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+            width: 100%;
+        }
+
+        .input-container img {
+            width: 20px;
+            margin-right: 10px;
+            opacity: 0.7;
+        }
+
+        .input-container input {
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 16px;
+            width: 100%;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s ease-in-out;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .error {
+            color: red;
+            margin-bottom: 10px;
+            display: none;
+            font-size: 14px;
+        }
+
+        @media (max-width: 400px) {
+            .login-container {
+                width: 90%;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <div class="logo-container">
+            <img src="https://prosculpt.co/wp-content/uploads/2024/05/prosculpt-logo_tm.png" alt="ProSculpt Logo">
+            <img src="https://www.naanmudhalvan.tn.gov.in/_nuxt/img/logo.cda70ae.svg" alt="Naan Mudhalvan Logo">
+        </div>
+        
+        <div id="error" class="error">Invalid Credentials</div>
+
+        <div class="input-container">
+            <img src="https://img.icons8.com/ios-filled/50/000000/user.png" alt="User Icon">
+            <input type="text" id="username" placeholder="Username">
+        </div>
+
+        <div class="input-container">
+            <img src="https://img.icons8.com/ios-filled/50/000000/lock-2.png" alt="Password Icon">
+            <input type="password" id="password" placeholder="Password">
+        </div>
+
+        <button onclick="login()">Login</button>
+    </div>
+
+    <script>
+        async function login() {
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+
+            const response = await fetch("/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                window.location.href = "/";
+            } else {
+                document.getElementById("error").style.display = "block";
+                document.getElementById("error").innerText = data.message || "Login failed";
+            }
+        }
+    </script>
+
+</body>
+</html>

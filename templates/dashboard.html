@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Report</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            background-color: #dad8d8;
+            padding: 12px 24px;
+            border-bottom: 2px solid #d2d0d0;
+        }
+        .header-title {
+            padding: 20px;
+            font-size: 24px;
+            font-weight: 500;
+        }
+        .tabs-container {
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 18px;
+            margin-right: 10px;
+        }
+        .active-tab {
+            border-bottom: 2px solid #000;
+            font-weight: 600;
+        }
+        .filters-container {
+            padding: 40px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .filter-label {
+            font-size: 14px;
+            margin-left: 8px;
+            margin-bottom: 4px;
+        }
+        .filter-select {
+            padding: 10px;
+            font-size: 16px;
+            width: 180px;
+            border: 1px solid lightgrey;
+            border-radius: 8px;
+            background-color: white;
+        }
+        .dashboard-content {
+            padding: 40px;
+            font-size: 18px;
+        }
+        #homeContent {
+            display: block;
+        }
+        #assessmentContent, #attendanceContent {
+            display: none;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        button {
+            padding: 8px 16px;
+            border: 1px solid #6883a1;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background-color: #fff;
+            color: #6883a1;
+        }
+        #filter-btn {
+            width: 150px;
+            height: 40px;
+            margin-left: 16px;
+            font-weight: bold;
+        }
+        #filter-btn:hover {
+            background-color: #6883a1;
+            color: white;
+        }
+        #clear-btn {
+            width: 150px;
+            height: 40px;
+            margin-left: 16px;
+            font-weight: bold;
+        }
+        #clear-btn:hover {
+            background-color: #6883a1;
+            color: white;
+        }
+        #pagination-controls {
+            margin-top: 15px;
+            text-align: center;
+        }
+        #pagination-controls button {
+            background-color: #28a745;
+            color: white;
+            font-weight: bold;
+            margin: 5px;
+            padding: 8px 12px;
+            border-radius: 6px;
+        }
+        #pagination-controls button:hover {
+            background-color: #218838;
+        }
+        #pagination-controls button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        #pagination-info {
+            font-weight: bold;
+            font-size: 14px;
+            color: #333;
+            margin: 0 10px;
+        }
+        .stats-container {
+            width: 90%;
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .stat-card {
+            height: 95px;
+            width: 200px;
+            font-size: 14px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .stat-count {
+            font-weight: 600;
+            font-size: 20px;
+            margin-top: 16px;
+        }
+        /* Charts Section */
+        .charts-container {
+            height: 300px;
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .chart-legend {
+            width: 60%;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .legend-color {
+            height: 20px;
+            width: 20px;
+            border-radius: 50px;
+        }
+        
+        .legend-label {
+            font-size: 16px;
+            margin-left: 8px;
+        }
+        
+        .pie-chart-container {
+            width: 40%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* Course Charts Section */
+        .course-charts {
+            width: 100%;
+            margin-top: 16px;
+            display: flex;
+        }
+        
+        .course-column {
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+            gap: 64px;
+        }
+        
+        .course-title {
+            font-size: 24px;
+            color: #db2d2d;
+            display: flex;
+            justify-content: center;
+            margin-bottom: -32px;
+        }
+        
+        .chart-wrapper {
+            height: 400px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0,0,0,.3);
+            border-radius: 50%;
+            border-top-color: #000;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div style="display: flex; flex-direction: column">
+            <div class="header-title">
+                Dashboard Report for the Naan Mudhalvan Course
+            </div>
+            <div class="tabs-container">
+                <div class="tab active-tab" id="homeTab" onclick="showContent('homeTab')">Home</div>
+                <div class="tab" id="assessmentTab" onclick="showContent('assessmentTab')">Assessment</div>
+                
+            </div>
+        </div>
+        <div class="logo-section" style="display: flex; align-items: center; gap: 10px;">
+            <img src="https://prosculpt.co/wp-content/uploads/2024/05/prosculpt-logo_tm.png" alt="Prosculpt Logo" style="width: 130px;">
+            <div class="logo-divider" style="width: 2px; height: 50px; background-color: #ccc;"></div>
+            <img src="https://www.naanmudhalvan.tn.gov.in/_nuxt/img/logo.cda70ae.svg" alt="Naan Mudhalvan Logo" style="width: 130px;">
+            <div style="display: flex; justify-content: flex-end; margin-left: auto;">
+                <button class="logout-btn" onclick="handleLogout()">
+                    <img src="https://img.icons8.com/?size=100&id=24337&format=png&color=ff0000" alt="Logout Icon" style="width: 25px; height: 25px">
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="filters-container">
+        <div class="filter-group">
+            <label class="filter-label">College Name</label>
+            <select id="College" class="filter-select">
+                <option value="">All</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label class="filter-label">District</label>
+            <select id="District" class="filter-select">
+                <option value="">All</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label class="filter-label">University</label>
+            <select id="University" class="filter-select">
+                <option value="">All</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label class="filter-label">Course</label>
+            <select id="Course" class="filter-select">
+                <option value="">All</option>
+            </select>
+        </div>
+        <div class="filter-buttons">
+            <button id="filter-btn" onclick="filterData()">
+                <span id="filter-btn-text">Apply Filters</span>
+                <span id="filter-btn-loader" class="loading" style="display: none;"></span>
+            </button>
+            <button id="clear-btn" onclick="clearFilters()">Clear Filters</button>
+        </div>
+    </div>
+
+    <!-- Home Tab Content -->
+    <div class="dashboard-content" id="homeContent">
+        <div class="stats-container">
+            <div data-count="enrolled" class="stat-card" style="background-color: #fbedac4d;">
+                <span>Enrolled Count</span>
+                <span class="count stat-count">0</span>
+            </div>
+            <div data-count="completed" class="stat-card" style="background-color: #8edc864d;">
+                <span>Completed Count</span>
+                <span class="count stat-count">0</span>
+            </div>
+            <div data-count="inprogress" class="stat-card" style="background-color: #f4a03b4d;">
+                <span>In Progress Count</span>
+                <span class="count stat-count">0</span>
+            </div>
+            <div data-count="notstarted" class="stat-card" style="background-color: #c7c7c74d;">
+                <span>Not Started Count</span>
+                <span class="count stat-count">0</span>
+            </div>
+            <div data-count="notcompleted" class="stat-card" style="background-color: #ff4a4a4d;">
+                <span>Not Completed Count</span>
+                <span class="count stat-count">0</span>
+            </div>
+        </div>
+        <div class="charts-container">
+            <div class="chart-legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #8edc86;"></div>
+                    <span class="legend-label">Completed</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #f4a03b;"></div>
+                    <span class="legend-label">In Progress</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #c7c7c7;"></div>
+                    <span class="legend-label">Not Started</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #ff4a4a;"></div>
+                    <span class="legend-label">Not Completed</span>
+                </div>
+            </div>
+            <div class="pie-chart-container">
+                <canvas id="myPieChart" width="50" height="50"></canvas>
+            </div>
+        </div>
+        <div class="course-charts">
+            <div class="course-column">
+                <div class="course-title">
+                    <span>Course Name 1</span>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="myCourse1HBarChart" width="30" height="30"></canvas>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="myCourse1VBarChart" width="50" height="50"></canvas>
+                </div>
+            </div>
+            <div class="course-column">
+                <div class="course-title">
+                    <span>Course Name 2</span>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="myCourse2HBarChart" width="50" height="50"></canvas>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="myCourse2VBarChart" width="50" height="50"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Assessment Tab Content -->
+    <div class="dashboard-content" id="assessmentContent">
+        <table>
+            <thead>
+                <tr>
+                    <th>College</th>
+                    <th>District</th>
+                    <th>University</th>
+                    <th>Course</th>
+                    <th>Student Count</th>
+                </tr>
+            </thead>
+            <tbody id="data-table">
+                <!-- Data will be dynamically loaded here -->
+            </tbody>
+        </table>
+        <div id="pagination-controls">
+            <button id="prev-btn" onclick="prevPage()" disabled>Previous</button>
+            <span id="pagination-info"></span>
+            <button id="next-btn" onclick="nextPage()" disabled>Next</button>
+        </div>
+    </div>
+    
+
+    <!-- Attendance Tab Content -->
+    <div class="dashboard-content" id="attendanceContent">
+        <p>Attendance content goes here.</p>
+    </div>
+    
+
+    <script>
+        let filters = {};
+        let allData = [];
+        let filteredData = [];
+        let currentPage = 0;
+        const rowsPerPage = 10;
+        let pieChart, course1HBarChart, course1VBarChart, course2HBarChart, course2VBarChart;
+
+        function initializeCharts() {
+            // // Destroy existing charts if they exist
+            // if (pieChart) pieChart.destroy();
+            // if (course1HBarChart) course1HBarChart.destroy();
+            // if (course1VBarChart) course1VBarChart.destroy();
+            // if (course2HBarChart) course2HBarChart.destroy();
+            // if (course2VBarChart) course2VBarChart.destroy();
+
+            // Pie Chart
+            const pieChartElement = document.getElementById("myPieChart").getContext("2d");
+            const pieChartData = {
+                labels: ["Completed", "In Progress", "Not Started", "Not Completed"],
+                datasets: [{
+                    label: "No. of Students",
+                    data: [30, 50, 20, 12],
+                    backgroundColor: ["#8edc86", "#f4a03b", "#c7c7c7", "#ff4a4a"],
+                    hoverBackgroundColor: ["#8edc86", "#f4a03b", "#c7c7c7", "#ff4a4a"]
+                }]
+            };
+            
+            const myPieChart = new Chart(pieChartElement, {
+                type: "doughnut",
+                data: pieChartData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: true
+                        }
+                    },
+                    radius: 100
+                }
+            });
+
+            // Course 1 Horizontal Bar Chart
+            const course1HBarChartElement = document.getElementById("myCourse1HBarChart");
+            const course1HBarChartData = {
+                labels: ["Total Expected", "On boarded", "Total Accessed", "> 60% attendance", "< 60% attendance"],
+                datasets: [{
+                    label: "No. of Students",
+                    data: [29003, 29010, 27071, 27265, 1745],
+                    barThickness: 35,
+                    backgroundColor: ["#a9cbff", "#5ed161", "#2a74e6", "#e19c19", "#ed3b3b"],
+                    borderColor: ["#a9cbff", "#5ed161", "#2a74e6", "#e19c19", "#ed3b3b"],
+                    borderWidth: 1
+                }]
+            };
+            
+            const course1HBarChart = new Chart(course1HBarChartElement, {
+                type: "bar",
+                data: course1HBarChartData,
+                options: {
+                    indexAxis: "y",
+                    scales: {
+                        x: {
+                            beginAtZero: true
+                        }
+                    },
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: true
+                        }
+                    }
+                }
+            });
+
+            // Course 1 Vertical Bar Chart
+            const course1VBarChartElement = document.getElementById("myCourse1VBarChart");
+            const course1VBarChartData = {
+                labels: ["0% - 19%", "20% - 59%", "60% - 100%"],
+                datasets: [{
+                    label: "No. of Students",
+                    data: [423, 61, 4498],
+                    barThickness: 45,
+                    backgroundColor: ["#d4832c", "#40b1df", "#f8e730"],
+                    borderColor: ["#d4832c", "#40b1df", "#f8e730"],
+                    borderWidth: 1
+                }]
+            };
+            
+            const course1VBarChart = new Chart(course1VBarChartElement, {
+                type: "bar",
+                data: course1VBarChartData,
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: true
+                        }
+                    }
+                }
+            });
+
+            // Course 2 Horizontal Bar Chart
+            const course2HBarChartElement = document.getElementById("myCourse2HBarChart");
+            const course2HBarChartData = {
+                labels: ["Total Expected", "On boarded", "Total Accessed", "> 60% attendance", "< 60% attendance"],
+                datasets: [{
+                    label: "No. of Students",
+                    data: [5379, 4982, 4350, 4498, 484],
+                    barThickness: 35,
+                    backgroundColor: ["#a9cbff", "#5ed161", "#2a74e6", "#e19c19", "#ed3b3b"],
+                    borderColor: ["#a9cbff", "#5ed161", "#2a74e6", "#e19c19", "#ed3b3b"],
+                    borderWidth: 1
+                }]
+            };
+            
+            const course2HBarChart = new Chart(course2HBarChartElement, {
+                type: "bar",
+                data: course2HBarChartData,
+                options: {
+                    indexAxis: "y",
+                    scales: {
+                        x: {
+                            beginAtZero: true
+                        }
+                    },
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: true
+                        }
+                    }
+                }
+            });
+
+            // Course 2 Vertical Bar Chart
+            const course2VBarChartElement = document.getElementById("myCourse2VBarChart");
+            const course2VBarChartData = {
+                labels: ["0% - 19%", "20% - 59%", "60% - 100%"],
+                datasets: [{
+                    label: "No. of Students",
+                    data: [1476, 269, 27265],
+                    barThickness: 45,
+                    backgroundColor: ["#d4832c", "#40b1df", "#f8e730"],
+                    borderColor: ["#d4832c", "#40b1df", "#f8e730"],
+                    borderWidth: 1
+                }]
+            };
+            
+            const course2VBarChart = new Chart(course2VBarChartElement, {
+                type: "bar",
+                data: course2VBarChartData,
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function showContent(tabId) {
+            // Hide all content sections
+            $("#homeContent, #assessmentContent, #attendanceContent").hide();
+            
+            // Show the selected content
+            if (tabId === 'homeTab') {
+                $("#homeContent").show();
+                initializeCharts();
+            } 
+            else if (tabId === 'assessmentTab') {
+                $("#assessmentContent").show();
+                $("#pagination-controls").toggle(filteredData.length > 0);
+                updateTable();
+                updatePagination();
+            } 
+            else if (tabId === 'attendanceTab') {
+                $("#attendanceContent").show();
+                $("#pagination-controls").hide();
+            }
+            
+            // Update active tab styling
+            $(".tab").removeClass("active-tab");
+            $(`#${tabId}`).addClass("active-tab");
+        }
+
+        $(document).ready(function() {
+            // Set up event listeners
+            $("#filter-btn").on("click", filterData);
+            $("#clear-btn").on("click", clearFilters);
+            $("#prev-btn").on("click", prevPage);
+            $("#next-btn").on("click", nextPage);
+
+            // Initialize the dashboard
+            fetchFilters();
+            
+            // Initialize charts if home tab is active
+            if ($("#homeTab").hasClass("active-tab")) {
+                initializeCharts();
+            }
+        });
+
+        function fetchFilters() {
+            showLoading('#filter-btn');
+            $.ajax({
+                url: "/api/filters",
+                type: "GET",
+                success: function(data) {
+                    filters = data;
+                    populateDropdowns(filters);
+                    hideLoading('#filter-btn');
+                    fetchInitialData();
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error loading filters:", error);
+                    alert("Failed to load filter options.");
+                    hideLoading('#filter-btn');
+                }
+            });
+        }
+
+        function fetchInitialData() {
+            showLoading('#filter-btn');
+            $.ajax({
+                url: "/filter",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({}),
+                success: function(response) {
+                    allData = response;
+                    filteredData = [...allData];
+                    hideLoading('#filter-btn');
+                    fetchStats();
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error loading initial data:", error);
+                    alert("Failed to load initial data.");
+                    hideLoading('#filter-btn');
+                }
+            });
+        }
+
+        function populateDropdowns(filters) {
+            Object.keys(filters).forEach(key => {
+                let dropdown = $(`#${key}`);
+                dropdown.find('option:not(:first)').remove();
+                filters[key].forEach(value => {
+                    if (value) dropdown.append(new Option(value, value));
+                });
+            });
+        }
+
+        function fetchStats(filterParams = {}) {
+            showLoading('#filter-btn');
+            $.ajax({
+                url: "/api/stats",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(filterParams),
+                success: function(response) {
+                    updateStats(response);
+                    hideLoading('#filter-btn');
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error fetching stats:", error);
+                    alert("Failed to load statistics.");
+                    hideLoading('#filter-btn');
+                }
+            });
+        }
+
+        function updateStats(stats) {
+            $(".stat-card").each(function() {
+                const countType = $(this).data("count");
+                $(this).find(".stat-count").text(stats[countType] || 0);
+            });
+        }
+
+        function filterData() {
+            const selectedFilters = {
+                College: $("#College").val() || "",
+                District: $("#District").val() || "",
+                University: $("#University").val() || "",
+                Course: $("#Course").val() || ""
+            };
+
+            showLoading('#filter-btn');
+
+            $.ajax({
+                url: "/filter",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(selectedFilters),
+                success: function(response) {
+                    filteredData = response;
+                    currentPage = 0;
+                    updateTable();
+                    updatePagination();
+                    fetchStats(selectedFilters);
+                    hideLoading('#filter-btn');
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error filtering data:", error);
+                    alert("Error filtering data.");
+                    hideLoading('#filter-btn');
+                }
+            });
+        }
+
+        function updateTable() {
+            $("#data-table").empty();
+
+            if (filteredData.length === 0) {
+                $("#data-table").append("<tr><td colspan='5'>No data found matching filters</td></tr>");
+                return;
+            }
+
+            const start = currentPage * rowsPerPage;
+            const end = Math.min(start + rowsPerPage, filteredData.length);
+            let tableContent = "";
+
+            for (let i = start; i < end; i++) {
+                const row = filteredData[i];
+                tableContent += `
+                    <tr>
+                        <td>${row.College || 'N/A'}</td>
+                        <td>${row.District || 'N/A'}</td>
+                        <td>${row.University || 'N/A'}</td>
+                        <td>${row.Course || 'N/A'}</td>
+                        <td>${row['Student Count'] || '0'}</td>
+                    </tr>
+                `;
+            }
+
+            $("#data-table").append(tableContent);
+        }
+
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+            $("#pagination-info").text(`Page ${currentPage + 1} of ${totalPages || 1}`);
+            $("#prev-btn").prop("disabled", currentPage === 0);
+            $("#next-btn").prop("disabled", currentPage >= totalPages - 1 || totalPages === 0);
+            $("#pagination-controls").toggle(totalPages > 1);
+        }
+
+        function prevPage() {
+            if (currentPage > 0) {
+                currentPage--;
+                updateTable();
+                updatePagination();
+            }
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+            if (currentPage < totalPages - 1) {
+                currentPage++;
+                updateTable();
+                updatePagination();
+            }
+        }
+
+        function clearFilters() {
+            $("#College, #District, #University, #Course").val("");
+            filteredData = [...allData];
+            currentPage = 0;
+            updateTable();
+            updatePagination();
+            fetchStats({});
+        }
+
+        function showLoading(buttonId) {
+            $(buttonId).prop('disabled', true);
+            $(`${buttonId}-text`).hide();
+            $(`${buttonId}-loader`).show();
+        }
+
+        function hideLoading(buttonId) {
+            $(buttonId).prop('disabled', false);
+            $(`${buttonId}-text`).show();
+            $(`${buttonId}-loader`).hide();
+        }
+
+        function handleLogout() {
+            fetch('/logout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+            }).then(response => {
+            if (response.ok) {
+                window.location.href = '/login'; // Redirect to login page after logout
+            } else {
+                alert("Logout failed. Please try again.");
+            }
+            }).catch(error => {
+            console.error("Logout Error:", error);
+            alert("Something went wrong. Please try again.");
+            });
+        }
+    </script>
+</body>
+</html>
